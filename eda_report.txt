@@ -1,0 +1,360 @@
+
+======================================================================
+  PHASE 1 - DATASET INSPECTION
+======================================================================
+
+[1-A] Loading dataset ...
+      Loaded  96,432 rows  x  25 columns
+
+[1-B] First 5 rows:
+             date_time  maxtempC  mintempC  totalSnow_cm  sunHour  uvIndex  uvIndex.1  moon_illumination  moonrise   moonset   sunrise    sunset  DewPointC  FeelsLikeC  HeatIndexC  WindChillC  WindGustKmph  cloudcover  humidity  precipMM  pressure  tempC  visibility  winddirDegree  windspeedKmph
+0  2009-01-01 00:00:00        27        12           0.0     11.6        5          1                 31  09:58 AM  10:03 PM  06:42 AM  06:05 PM         16          18          18          18            11           2        91       0.0      1014     14          10            109              8
+1  2009-01-01 01:00:00        27        12           0.0     11.6        5          1                 31  09:58 AM  10:03 PM  06:42 AM  06:05 PM         16          17          17          17             9           2        93       0.0      1014     14           7             85              6
+2  2009-01-01 02:00:00        27        12           0.0     11.6        5          1                 31  09:58 AM  10:03 PM  06:42 AM  06:05 PM         15          16          16          16             7           2        94       0.0      1014     13           5             61              4
+3  2009-01-01 03:00:00        27        12           0.0     11.6        5          1                 31  09:58 AM  10:03 PM  06:42 AM  06:05 PM         15          15          15          15             5           2        96       0.0      1014     12           2             37              3
+4  2009-01-01 04:00:00        27        12           0.0     11.6        5          1                 31  09:58 AM  10:03 PM  06:42 AM  06:05 PM         15          18          18          18             5           1        88       0.0      1015     14           5             45              3
+
+[1-B] Last 5 rows:
+                 date_time  maxtempC  mintempC  totalSnow_cm  sunHour  uvIndex  uvIndex.1  moon_illumination  moonrise   moonset   sunrise    sunset  DewPointC  FeelsLikeC  HeatIndexC  WindChillC  WindGustKmph  cloudcover  humidity  precipMM  pressure  tempC  visibility  winddirDegree  windspeedKmph
+96427  2020-01-01 19:00:00        26        18           0.0      8.7        6          1                 37  11:15 AM  11:19 PM  06:41 AM  06:04 PM         18          25          25          23            22          74        76       0.1      1014     23          10            107             16
+96428  2020-01-01 20:00:00        26        18           0.0      8.7        6          1                 37  11:15 AM  11:19 PM  06:41 AM  06:04 PM         18          22          24          22            23          73        81       0.6      1015     22           9            106             16
+96429  2020-01-01 21:00:00        26        18           0.0      8.7        6          1                 37  11:15 AM  11:19 PM  06:41 AM  06:04 PM         18          21          23          21            25          72        86       0.8      1016     21           9            105             17
+96430  2020-01-01 22:00:00        26        18           0.0      8.7        6          1                 37  11:15 AM  11:19 PM  06:41 AM  06:04 PM         18          20          22          20            24          69        88       0.4      1016     20          10            106             16
+96431  2020-01-01 23:00:00        26        18           0.0      8.7        6          1                 37  11:15 AM  11:19 PM  06:41 AM  06:04 PM         18          20          21          20            24          66        89       0.5      1016     20          10            108             16
+
+[1-C] Shape : 96,432 rows  x  25 columns
+
+[1-D] Column names and data types:
+           Column   Dtype  Non-Null
+        date_time     str     96432
+         maxtempC   int64     96432
+         mintempC   int64     96432
+     totalSnow_cm float64     96432
+          sunHour float64     96432
+          uvIndex   int64     96432
+        uvIndex.1   int64     96432
+moon_illumination   int64     96432
+         moonrise     str     96432
+          moonset     str     96432
+          sunrise     str     96432
+           sunset     str     96432
+        DewPointC   int64     96432
+       FeelsLikeC   int64     96432
+       HeatIndexC   int64     96432
+       WindChillC   int64     96432
+     WindGustKmph   int64     96432
+       cloudcover   int64     96432
+         humidity   int64     96432
+         precipMM float64     96432
+         pressure   int64     96432
+            tempC   int64     96432
+       visibility   int64     96432
+    winddirDegree   int64     96432
+    windspeedKmph   int64     96432
+
+[1-E] Missing values per column:
+      No missing values found.
+
+      Duplicate rows : 0
+
+[1-F] Checking for obvious incorrect / abnormal values ...
+      tempC outside [-5, 50] deg C      : 0 rows
+      maxtempC outside [-5, 55] deg C   : 0 rows
+      humidity outside [0, 100] %%      : 0 rows
+      precipMM negative values           : 0 rows
+      windspeedKmph negative values      : 0 rows
+      cloudcover outside [0, 100]        : 0 rows
+      pressure outside [960, 1050] hPa   : 0 rows
+      totalSnow_cm non-zero rows         : 0  (Bengaluru does not snow)
+      uvIndex.1 unique values            : [np.int64(1), np.int64(2), np.int64(4), np.int64(5), np.int64(6), np.int64(7), np.int64(8), np.int64(9), np.int64(10)]
+
+[1-G] Summary statistics of numerical columns:
+                     count         mean        std     min     25%     50%     75%     max
+maxtempC           96432.0    29.646093   3.446427    18.0    27.0    29.0    32.0    40.0
+mintempC           96432.0    19.336735   2.773771    11.0    18.0    20.0    21.0    28.0
+totalSnow_cm       96432.0     0.000000   0.000000     0.0     0.0     0.0     0.0     0.0
+sunHour            96432.0    10.653484   1.986738     4.2     8.8    11.6    11.6    12.9
+uvIndex            96432.0     5.900448   0.851346     4.0     5.0     6.0     6.0     8.0
+uvIndex.1          96432.0     4.013751   2.869923     1.0     1.0     5.0     7.0    10.0
+moon_illumination  96432.0    46.094077  31.249725     0.0    18.0    46.0    73.0   100.0
+DewPointC          96432.0    16.085418   4.161604    -9.0    14.0    18.0    19.0    25.0
+FeelsLikeC         96432.0    25.002261   4.586926    12.0    21.0    25.0    28.0    43.0
+HeatIndexC         96432.0    25.269662   4.430811    13.0    22.0    25.0    28.0    43.0
+WindChillC         96432.0    24.422152   4.516766    12.0    21.0    24.0    27.0    42.0
+WindGustKmph       96432.0    17.370966   7.426413     0.0    12.0    17.0    22.0    53.0
+cloudcover         96432.0    34.847488  28.391021     0.0     9.0    29.0    54.0   100.0
+humidity           96432.0    64.895460  21.856869     6.0    49.0    68.0    83.0   100.0
+precipMM           96432.0     0.077719   0.385865     0.0     0.0     0.0     0.0    16.9
+pressure           96432.0  1010.554225   3.187016  1000.0  1008.0  1010.0  1013.0  1021.0
+tempC              96432.0    23.979810   4.540028     0.0    21.0    23.0    27.0    40.0
+visibility         96432.0     9.274162   2.184726     0.0    10.0    10.0    10.0    20.0
+winddirDegree      96432.0   176.182097  89.443207     0.0    94.0   163.0   262.0   360.0
+windspeedKmph      96432.0    12.448938   5.716769     0.0     8.0    12.0    16.0    41.0
+
+======================================================================
+  PHASE 2 - DATA PREPROCESSING
+======================================================================
+
+[2-A] Column review and removal ...
+      Current columns (25): ['date_time', 'maxtempC', 'mintempC', 'totalSnow_cm', 'sunHour', 'uvIndex', 'uvIndex.1', 'moon_illumination', 'moonrise', 'moonset', 'sunrise', 'sunset', 'DewPointC', 'FeelsLikeC', 'HeatIndexC', 'WindChillC', 'WindGustKmph', 'cloudcover', 'humidity', 'precipMM', 'pressure', 'tempC', 'visibility', 'winddirDegree', 'windspeedKmph']
+      Dropping 'totalSnow_cm': 
+      Dropping 'uvIndex.1': 
+      Dropping 'moonrise': 
+      Dropping 'moonset': 
+      Dropping 'sunrise': 
+      Dropping 'sunset': 
+      Dropped 'totalSnow_cm': All zeros for Bengaluru (tropical city) - zero variance, no predictive use
+      Dropped 'uvIndex.1': Duplicate/artifact column - redundant with uvIndex
+      Dropped 'moonrise': Time string, not parseable as a numeric weather parameter
+      Dropped 'moonset': Time string, not parseable as a numeric weather parameter
+      Dropped 'sunrise': Time string - temporal patterns captured by hour/month features
+      Dropped 'sunset': Time string - temporal patterns captured by hour/month features
+
+      Columns after removal (19): ['date_time', 'maxtempC', 'mintempC', 'sunHour', 'uvIndex', 'moon_illumination', 'DewPointC', 'FeelsLikeC', 'HeatIndexC', 'WindChillC', 'WindGustKmph', 'cloudcover', 'humidity', 'precipMM', 'pressure', 'tempC', 'visibility', 'winddirDegree', 'windspeedKmph']
+
+[2-B] Removing duplicate rows ...
+      Removed 0 duplicates  ->  96,432 rows remain.
+
+[2-C] Converting date_time column to proper datetime format ...
+      Unparseable datetime entries: 0
+      Date range: 2009-01-01 00:00:00  ->  2020-01-01 23:00:00
+
+[2-D] Extracting temporal features ...
+      Added: hour, day, month, year, day_of_week, week_of_year, season
+
+[2-E] Handling missing values ...
+      No missing values - no imputation required.
+      Total missing after imputation: 0
+
+[2-F] Outlier detection (IQR method, Winsorization) ...
+      Strategy: Cap outliers at 1.5 * IQR bounds (Winsorization).
+      Reason  : Preserves all rows while reducing extreme distortion.
+      NOTE    : precipMM is EXCLUDED - heavy rain events are real extremes.
+      Winsorized 'maxtempC': clipped to [19.50, 39.50]  (336 values)
+      Winsorized 'mintempC': clipped to [13.50, 25.50]  (3,168 values)
+      Winsorized 'sunHour': clipped to [4.60, 15.80]  (1,776 values)
+      Winsorized 'uvIndex': clipped to [3.50, 7.50]  (2,496 values)
+      Winsorized 'DewPointC': clipped to [6.50, 26.50]  (3,705 values)
+      Winsorized 'FeelsLikeC': clipped to [10.50, 38.50]  (121 values)
+      Winsorized 'HeatIndexC': clipped to [13.00, 37.00]  (260 values)
+      Winsorized 'WindChillC': clipped to [12.00, 36.00]  (625 values)
+      Winsorized 'WindGustKmph': clipped to [-3.00, 37.00]  (877 values)
+      Winsorized 'pressure': clipped to [1000.50, 1020.50]  (12 values)
+      Winsorized 'tempC': clipped to [12.00, 36.00]  (278 values)
+      Winsorized 'windspeedKmph': clipped to [-4.00, 28.00]  (1,192 values)
+      Winsorized columns: ['maxtempC', 'mintempC', 'sunHour', 'uvIndex', 'DewPointC', 'FeelsLikeC', 'HeatIndexC', 'WindChillC', 'WindGustKmph', 'pressure', 'tempC', 'windspeedKmph']
+
+[2-G] Sorting dataset chronologically ...
+      Sorted by date_time.
+      Date range: 2009-01-01 00:00:00  ->  2020-01-01 23:00:00
+
+      Dataset shape after preprocessing: 96,432 rows x 26 columns
+
+======================================================================
+  PHASE 3 - CREATE PREDICTION TARGETS
+======================================================================
+
+[3] Creating prediction targets for next-hour rainfall ...
+    Precipitation column used: 'precipMM'
+    Strategy: Use current-hour features to predict next-hour rainfall.
+    No future information is used as input features (no data leakage).
+    Created 'next_hour_rainfall' and 'rain_status'.
+    Dropped last row (no future target available).
+    Final rows: 96,431
+
+    Class distribution of rain_status:
+      Rain    (1) : 11,828  (12.3%)
+      No-rain (0) : 84,603  (87.7%)
+
+    Final feature list (28 columns):
+        1. date_time  [datetime64[us]]
+        2. maxtempC  [float64]
+        3. mintempC  [float64]
+        4. sunHour  [float64]
+        5. uvIndex  [float64]
+        6. moon_illumination  [int64]
+        7. DewPointC  [float64]
+        8. FeelsLikeC  [float64]
+        9. HeatIndexC  [int64]
+       10. WindChillC  [int64]
+       11. WindGustKmph  [int64]
+       12. cloudcover  [int64]
+       13. humidity  [int64]
+       14. precipMM  [float64]
+       15. pressure  [float64]
+       16. tempC  [int64]
+       17. visibility  [int64]
+       18. winddirDegree  [int64]
+       19. windspeedKmph  [int64]
+       20. hour  [int32]
+       21. day  [int32]
+       22. month  [int32]
+       23. year  [int32]
+       24. day_of_week  [int32]
+       25. week_of_year  [int64]
+       26. season  [str]
+       27. next_hour_rainfall  [float64]
+       28. rain_status  [int64]
+
+======================================================================
+  PHASE 4 - EXPLORATORY DATA ANALYSIS (EDA)
+======================================================================
+
+  EDA columns: rain=precipMM, temp=tempC, hum=humidity,
+               cloud=cloudcover, wind=windspeedKmph, pressure=pressure
+
+[4-1] Plotting rainfall distribution ...
+  FINDING: Rainfall is highly right-skewed (zero-inflated).
+    87.7% of hours recorded zero rainfall.
+    Mean rainfall (rainy hrs only) = 0.634 mm
+    Median rainfall (rainy hrs)    = 0.300 mm
+    Max recorded rainfall          = 16.90 mm
+    This strong imbalance requires special handling in ML (SMOTE / class weights).
+
+[4-2] Plotting temperature distribution ...
+  FINDING: Temperature range: 12 deg C  to  36 deg C
+    Mean = 24.0 deg C;  Median = 23.0 deg C
+    Bengaluru shows moderate temperatures year-round (18-35 deg C typical).
+
+[4-3] Plotting humidity distribution ...
+  FINDING: Mean humidity = 64.9%;  Median = 68.0%
+    Distribution is roughly bimodal: dry season (40-60%) and monsoon (80-100%).
+
+[4-4] Plotting cloud cover distribution ...
+  FINDING: Mean cloud cover = 34.8%;  Median = 29.0%
+    Cloud cover shows high variability - peaks at 0% (clear) and 100% (overcast).
+
+[4-5] Plotting wind speed distribution ...
+  FINDING: Mean wind speed = 12.4 km/h;  Max = 28.0 km/h
+    Wind speed is right-skewed; most hours have calm to moderate winds.
+
+[4-6] Plotting monthly rainfall pattern ...
+  FINDING: Wettest month = Oct;  Driest month = Feb
+  South-West monsoon (June-Sept) dominates annual rainfall in Bengaluru.
+  October-November (North-East monsoon) contributes secondary rainfall peak.
+
+[4-7] Plotting hourly rainfall pattern ...
+  FINDING: Hour with highest average rainfall = 18:00
+  Rainfall in Bengaluru peaks in late afternoon and evening hours,
+  consistent with convective thunderstorm patterns (solar heating driven).
+
+[4-8] Plotting correlation heatmap ...
+  FINDING: Top correlates with rain_status (absolute correlation):
+next_hour_rainfall    0.538683
+precipMM              0.434491
+cloudcover            0.279017
+DewPointC             0.271224
+pressure              0.166613
+mintempC              0.149670
+maxtempC              0.134274
+month                 0.132395
+
+[4-9] Plotting humidity vs rainfall ...
+  FINDING: Clear positive relationship - higher humidity bands show higher rainfall.
+  Very low humidity (<40%) almost never produces rainfall.
+  At 90%+ humidity, rainfall occurrence increases significantly.
+
+[4-10] Plotting cloud cover vs rainfall ...
+  FINDING: Mean rainfall increases sharply at cloud cover > 60-70%.
+  Dense cloud cover (>80%) is a strong indicator of imminent rainfall.
+  Clear-sky hours (0-10%) produce almost no precipitation.
+
+[4-11] Plotting pressure vs rainfall ...
+  FINDING: Lower atmospheric pressure bands show slightly higher rainfall.
+  This is physically consistent: low-pressure systems bring rainfall in India.
+  However, in Bengaluru's dataset the pressure range is narrow (1000-1021 hPa),
+  so the pressure signal may be weaker compared to coastal/oceanic stations.
+
+======================================================================
+  PHASE 5 - SAVE RESULTS
+======================================================================
+
+[5-A] Saving bengaluru_processed.csv ...
+      Saved to : d:\bengaluru.csv\bengaluru_processed.csv
+      Shape    : 96,431 rows x 28 columns
+
+[5-B] EDA graphs saved in:
+      d:\bengaluru.csv\eda_graphs
+        * 01_rainfall_distribution.png
+        * 02_temperature_distribution.png
+        * 03_humidity_distribution.png
+        * 04_cloud_cover_distribution.png
+        * 05_wind_speed_distribution.png
+        * 06_monthly_rainfall_pattern.png
+        * 07_hourly_rainfall_pattern.png
+        * 08_correlation_heatmap.png
+        * 09_humidity_vs_rainfall.png
+        * 10_cloud_cover_vs_rainfall.png
+        * 11_pressure_vs_rainfall.png
+
+======================================================================
+  SUMMARY - CLOUDPATH AI PHASE 1-4 COMPLETE
+======================================================================
+
+  Original dataset  : 96,432 rows x 25 columns
+  Processed dataset : 96,431 rows x 28 columns
+
+  Feature list (28 columns):
+      1. date_time  [datetime64[us]]
+      2. maxtempC  [float64]
+      3. mintempC  [float64]
+      4. sunHour  [float64]
+      5. uvIndex  [float64]
+      6. moon_illumination  [int64]
+      7. DewPointC  [float64]
+      8. FeelsLikeC  [float64]
+      9. HeatIndexC  [int64]
+     10. WindChillC  [int64]
+     11. WindGustKmph  [int64]
+     12. cloudcover  [int64]
+     13. humidity  [int64]
+     14. precipMM  [float64]
+     15. pressure  [float64]
+     16. tempC  [int64]
+     17. visibility  [int64]
+     18. winddirDegree  [int64]
+     19. windspeedKmph  [int64]
+     20. hour  [int32]
+     21. day  [int32]
+     22. month  [int32]
+     23. year  [int32]
+     24. day_of_week  [int32]
+     25. week_of_year  [int64]
+     26. season  [str]
+     27. next_hour_rainfall  [float64]
+     28. rain_status  [int64]
+
+  KEY EDA FINDINGS:
+  1.  Rainfall is extremely right-skewed (zero-inflated). Most hours record 0 mm.
+     87.7% of hours had no rainfall at all.
+  2.  Monsoon months (June-September) dominate annual rainfall.
+     Wettest month: Oct.  Driest month: Feb.
+  3.  Peak rainfall hour: 18:00 - afternoon/evening convective storms.
+  4.  High humidity (>80%) strongly correlates with rainfall occurrence.
+  5.  Dense cloud cover (>70%) significantly raises rainfall probability.
+  6.  Lower atmospheric pressure is associated with wetter conditions.
+  7.  Dew point and humidity are highly correlated with each other.
+  8.  Temperature drops during rainy/monsoon periods.
+
+  CLASS BALANCE (rain_status):
+    Rain    (1): 11,828  (12.3%)
+    No-rain (0): 84,603  (87.7%)
+
+  LIMITATIONS / CONCERNS:
+  - Class imbalance: rain_status=1 is a significant minority -> use SMOTE or class weights in ML.
+  - totalSnow_cm was all zeros (Bengaluru is tropical) and was removed.
+  - maxtempC/mintempC are daily aggregates repeated for all 24 hours of each day.
+  - uvIndex.1 appeared to be a data artifact/duplicate and was removed.
+  - moonrise, moonset, sunrise, sunset were non-numeric time strings; removed.
+  - Winsorization applied to non-precipitation cols to reduce outlier distortion.
+  - precipMM preserved as-is (extreme values are genuine heavy-rain events).
+  - No ML model has been trained yet - this phase covers data preparation and EDA only.
+
+  NEXT STEPS (Phase 2 of project):
+    -> Feature engineering: lag features (t-1, t-2, t-3 hour), rolling means/std
+    -> Time-aware train/validation/test split (no random shuffle)
+    -> Model selection and training (XGBoost, Random Forest, LSTM/GRU)
+    -> Hyperparameter tuning and evaluation (AUC-ROC, F1, Precision, Recall)
+    -> Class imbalance handling (SMOTE, class_weight, threshold tuning)
+
+======================================================================

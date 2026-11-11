@@ -1,0 +1,243 @@
+CloudPath AI – Phase 2: Machine Learning Model Report
+======================================================================
+
+
+======================================================================
+  SECTION 1 – DATASET UNDERSTANDING
+======================================================================
+
+[1-A] Loading bengaluru_processed.csv ...
+      Shape: 96,431 rows  x  28 columns
+      Date range: 2009-01-01 00:00:00  ->  2020-01-01 22:00:00
+
+[1-B] Input features (25): ['maxtempC', 'mintempC', 'sunHour', 'uvIndex', 'moon_illumination', 'DewPointC', 'FeelsLikeC', 'HeatIndexC', 'WindChillC', 'WindGustKmph', 'cloudcover', 'humidity', 'precipMM', 'pressure', 'tempC', 'visibility', 'winddirDegree', 'windspeedKmph', 'hour', 'day', 'month', 'year', 'day_of_week', 'week_of_year', 'season_enc']
+
+[1-C] Class distribution of rain_status:
+      0 (No Rain ):  84,603  (87.7%)
+      1 (Rain    ):  11,828  (12.3%)
+
+[1-D] next_hour_rainfall distribution:
+      Min    = 0.000 mm
+      Max    = 16.900 mm
+      Mean   = 0.0777 mm
+      Median = 0.000 mm
+      Zero % = 87.7%
+
+[1-E] Data leakage check ...
+      'next_hour_rainfall' is created by shifting precipMM by -1 row.
+      Input features use ONLY current-hour observations.
+      No future weather data is used as a predictor.
+      LEAKAGE STATUS: SAFE
+
+======================================================================
+  SECTION 2 – CHRONOLOGICAL DATA SPLIT
+======================================================================
+
+  Splitting the dataset chronologically (80% train / 20% test).
+  Rationale: Time-series data must not be randomly shuffled.
+  Earlier observations train the model; later observations test it.
+
+  Train : 77,144 rows  (2009-01-01 -> 2017-10-20)
+  Test  : 19,287 rows  (2017-10-20 -> 2020-01-01)
+  Split index : row 77,144
+
+  Feature scaling: StandardScaler fitted on TRAIN set only.
+  Scaler will be saved for use in the prediction pipeline.
+
+  Train set rain % : 11.0%
+  Test  set rain % : 17.5%
+
+======================================================================
+  SECTION 3 – CLASSIFICATION MODELS
+======================================================================
+
+  Target: rain_status  (0=no rain, 1=rain next hour)
+  Because data is imbalanced (~12% rain), we use class_weight='balanced'
+  and report Precision, Recall and F1 alongside Accuracy.
+
+--- 3-1. Logistic Regression ---
+  [Logistic Regression]
+    Accuracy  : 0.8436
+    Precision : 0.5300
+    Recall    : 0.9249
+    F1-Score  : 0.6739
+    ROC-AUC   : 0.9567
+    Train time: 0.5s
+
+--- 3-2. Decision Tree Classifier ---
+  [Decision Tree]
+    Accuracy  : 0.9289
+    Precision : 0.7540
+    Recall    : 0.8804
+    F1-Score  : 0.8123
+    ROC-AUC   : 0.9608
+    Train time: 0.5s
+
+--- 3-3. Random Forest Classifier ---
+  [Random Forest]
+    Accuracy  : 0.9272
+    Precision : 0.7241
+    Recall    : 0.9421
+    F1-Score  : 0.8188
+    ROC-AUC   : 0.9801
+    Train time: 5.9s
+
+--- 3-4. XGBoost Classifier ---
+  [XGBoost]
+    Accuracy  : 0.9418
+    Precision : 0.8252
+    Recall    : 0.8460
+    F1-Score  : 0.8355
+    ROC-AUC   : 0.9764
+    Train time: 6.9s
+
+  >>> Best classifier by F1-Score: XGBoost (F1=0.8355)
+
+======================================================================
+  SECTION 4 – REGRESSION MODELS
+======================================================================
+
+  Target: next_hour_rainfall  (mm)
+  NOTE: ~87.7% of target values are 0.0 mm (zero-inflated).
+  This causes regressors to learn a strong 'predict near zero' bias,
+  which inflates R^2 and deflates MAE relative to true performance.
+
+--- 4-1. Linear Regression ---
+  [Linear Regression]
+    MAE  : 0.0969 mm
+    MSE  : 0.1040 mm^2
+    RMSE : 0.3224 mm
+    R^2  : 0.6302
+    Train time: 0.1s
+
+--- 4-2. Decision Tree Regressor ---
+  [Decision Tree]
+    MAE  : 0.0780 mm
+    MSE  : 0.1027 mm^2
+    RMSE : 0.3204 mm
+    R^2  : 0.6348
+    Train time: 0.6s
+
+--- 4-3. Random Forest Regressor ---
+  [Random Forest]
+    MAE  : 0.0700 mm
+    MSE  : 0.0858 mm^2
+    RMSE : 0.2929 mm
+    R^2  : 0.6949
+    Train time: 29.1s
+
+--- 4-4. XGBoost Regressor ---
+  [XGBoost]
+    MAE  : 0.0642 mm
+    MSE  : 0.0620 mm^2
+    RMSE : 0.2490 mm
+    R^2  : 0.7795
+    Train time: 5.0s
+
+  >>> Best regressor by RMSE: XGBoost (RMSE=0.2490 mm)
+
+======================================================================
+  SECTION 5 – MODEL TUNING (TIME-SERIES AWARE)
+======================================================================
+
+  We use TimeSeriesSplit (5 folds) to tune hyperparameters.
+  This respects temporal order: each fold's validation is always AFTER training.
+
+[5-A] Tuning classifier: XGBoost
+    Config {'n_estimators': 200, 'max_depth': 5, 'learning_rate': 0.1} -> CV F1 = 0.8169
+    Config {'n_estimators': 300, 'max_depth': 6, 'learning_rate': 0.08} -> CV F1 = 0.8251
+    Config {'n_estimators': 400, 'max_depth': 7, 'learning_rate': 0.05} -> CV F1 = 0.8297
+  Best params: {'n_estimators': 400, 'max_depth': 7, 'learning_rate': 0.05}  (CV F1=0.8297)
+
+  Training tuned classifier on full training set ...
+
+  Tuned classifier results on TEST set:
+    Accuracy  : 0.9413
+    Precision : 0.8208
+    Recall    : 0.8496
+    F1-Score  : 0.8349
+    ROC-AUC   : 0.9753
+
+  Improvement: F1 0.8355 -> 0.8349  (same/marginal)
+
+[5-B] Tuning regressor: XGBoost
+    Config {'n_estimators': 200, 'max_depth': 5, 'learning_rate': 0.1} -> CV RMSE = 0.1856
+    Config {'n_estimators': 300, 'max_depth': 6, 'learning_rate': 0.08} -> CV RMSE = 0.1847
+    Config {'n_estimators': 400, 'max_depth': 7, 'learning_rate': 0.05} -> CV RMSE = 0.1866
+  Best params: {'n_estimators': 300, 'max_depth': 6, 'learning_rate': 0.08}  (CV RMSE=0.1847)
+
+  Training tuned regressor on full training set ...
+
+  Tuned regressor results on TEST set:
+    MAE  : 0.0597 mm
+    RMSE : 0.2599 mm
+    R^2  : 0.7598
+
+  Improvement: RMSE 0.2490 -> 0.2599  (same/marginal)
+
+======================================================================
+  SECTION 6 – MODEL VISUALISATIONS
+======================================================================
+
+[6-1] Classifier performance comparison ...
+[6-2] Regressor performance comparison ...
+[6-3] Confusion matrix for best classifier ...
+[6-4] ROC curve for best classifier ...
+[6-5] Actual vs predicted rainfall (best regressor) ...
+[6-6] Feature importance charts ...
+[6-7] Precision vs Recall comparison ...
+
+======================================================================
+  SECTION 7 – SAVE MODELS AND ARTEFACTS
+======================================================================
+
+[7-A] Saved classifier pipeline: d:\bengaluru.csv\rainfall_classifier.pkl
+[7-B] Saved regressor pipeline : d:\bengaluru.csv\rainfall_regressor.pkl
+[7-C] Saved evaluation CSV    : d:\bengaluru.csv\model_evaluation.csv
+[7-D] Saved metadata JSON      : d:\bengaluru.csv\model_metadata.json
+
+======================================================================
+  SECTION 8 – MODEL REPORT
+======================================================================
+
+  CLASSIFICATION RESULTS SUMMARY
+  ------------------------------------------------------------------------------------------
+  Logistic Regression               Acc=0.8436  P=0.5300  R=0.9249  F1=0.6739  AUC=0.9567
+  Decision Tree                     Acc=0.9289  P=0.7540  R=0.8804  F1=0.8123  AUC=0.9608
+  Random Forest                     Acc=0.9272  P=0.7241  R=0.9421  F1=0.8188  AUC=0.9801
+  XGBoost                           Acc=0.9418  P=0.8252  R=0.8460  F1=0.8355  AUC=0.9764
+  XGBoost (Tuned)                   Acc=0.9413  P=0.8208  R=0.8496  F1=0.8349  AUC=0.9753
+
+  REGRESSION RESULTS SUMMARY
+  --------------------------------------------------------------------------------
+  Linear Regression                 MAE=0.0969  RMSE=0.3224  R2=0.6302
+  Decision Tree                     MAE=0.0780  RMSE=0.3204  R2=0.6348
+  Random Forest                     MAE=0.0700  RMSE=0.2929  R2=0.6949
+  XGBoost                           MAE=0.0642  RMSE=0.2490  R2=0.7795
+  XGBoost (Tuned)                   MAE=0.0597  RMSE=0.2599  R2=0.7598
+
+  BEST CLASSIFIER : XGBoost (Tuned)
+    Accuracy  = 0.9413
+    Precision = 0.8208
+    Recall    = 0.8496
+    F1-Score  = 0.8349
+    ROC-AUC   = 0.9753
+
+  BEST REGRESSOR  : XGBoost (Tuned)
+    MAE  = 0.0597 mm
+    RMSE = 0.2599 mm
+    R^2  = 0.7598
+
+  LIMITATIONS:
+  1. Rain class is ~12% of dataset -> model performance is biased toward majority.
+  2. next_hour_rainfall is zero ~88% of the time -> regressors learn a near-zero bias.
+  3. No temporal lag features used yet (e.g. t-1 humidity). Adding them would improve recall.
+  4. Models do not capture long-range monsoon onset patterns.
+  5. Feature set limited to current-hour; cloud movement vectors not yet available.
+
+  POSSIBLE IMPROVEMENTS (Phase 3):
+  -> Add lag features: precipMM(t-1), humidity(t-1), cloudcover(t-1)
+  -> Add rolling stats: 3hr / 6hr mean rainfall, humidity trend
+  -> Two-stage model: first classify rain/no-rain, then regress amount
+  -> Deep learning: LSTM / GRU for sequence patterns
+  -> Integrate satellite cloud imagery for spatial cloud tracking

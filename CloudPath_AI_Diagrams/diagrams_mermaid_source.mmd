@@ -1,0 +1,219 @@
+%% ==============================================================================
+%% CLOUDPATH AI - TECHNICAL DIAGRAMS MERMAID SOURCE CODE
+%% Project: AI-Based Cloud Movement Tracking and Rainfall Prediction System
+%% Region: Bengaluru Urban Region (12.9716° N, 77.5946° E)
+%% ==============================================================================
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 1: OVERALL SYSTEM ARCHITECTURE
+%% ------------------------------------------------------------------------------
+graph TB
+    subgraph S1["Data Ingestion Layer"]
+        A1["INSAT-3DS Satellite Imagery<br/>(HDF5/NetCDF-4 4km L2B)"]
+        A2["Surface Meteorological Data<br/>(Open-Meteo & IMD Sensors)"]
+    end
+
+    subgraph S2["Preprocessing & Feature Engineering"]
+        B1["Geo-spatial Cropping & Extraction<br/>(Bengaluru 162x159 Grid)"]
+        B2["Binary Thresholding & Morphological Filter<br/>(Otsu Threshold & Noise Cleaning)"]
+        B3["Atmospheric Feature Vector Formulation<br/>(25 Meteorological Parameters)"]
+    end
+
+    subgraph S3["Core Analytical & Prediction Engine"]
+        C1["Spatiotemporal Cloud Tracking<br/>(CCA & Hungarian Global Optimization)"]
+        C2["Two-Stage XGBoost Rainfall Model<br/>(Ensemble Classifier & Quant. Regressor)"]
+    end
+
+    subgraph S4["Dashboard & Presentation Layer"]
+        D1["Interactive Flask/Web Dashboard<br/>(Real-Time Trajectory Overlay & GeoJSON)"]
+        D2["Alert & Decision Support System<br/>(Precipitation Warning & Motion Vectors)"]
+    end
+
+    A1 --> B1
+    B1 --> B2
+    B2 --> C1
+    A2 --> B3
+    B3 --> C2
+    C1 --> D1
+    C2 --> D1
+    C1 --> D2
+    C2 --> D2
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 2: LEVEL 0 DATA FLOW DIAGRAM (CONTEXT DIAGRAM)
+%% ------------------------------------------------------------------------------
+graph LR
+    U1["Meteorologist / End User"]
+    S1["INSAT-3DS Satellite<br/>(ISRO / MOSDAC)"]
+    S2["Ground Weather Station<br/>(IMD / Surface Telemetry)"]
+    
+    P0(("0.0<br/>CloudPath AI System"))
+    
+    DB[(System Databases &<br/>Spatial Storage)]
+    
+    S1 -- "Raw Satellite NetCDF4 / HDF5" --> P0
+    S2 -- "Hourly Weather Telemetry (25 Features)" --> P0
+    P0 -- "Store Processed Vectors & Track Logs" --> DB
+    DB -- "Historical Patterns & Model Weights" --> P0
+    U1 -- "Timeline Date/Time Query" --> P0
+    P0 -- "Interactive Spatial Tracking & Precipitation Forecast" --> U1
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 3: LEVEL 1 DATA FLOW DIAGRAM
+%% ------------------------------------------------------------------------------
+graph TB
+    D1["INSAT-3DS NetCDF4"] --> P1["1.0 Spatial Extraction & Preprocessing"]
+    P1 --> D_SAT[("Processed Satellite Frames")]
+    
+    D_SAT --> P2["2.0 Connected Component Extraction"]
+    P2 --> D_CLD[("Extracted Cloud Regions")]
+    
+    D_CLD --> P3["3.0 Hungarian Association & Tracking"]
+    P3 --> D_TRK[("Active & Historic Tracks")]
+    
+    D2["Hourly Weather Observations"] --> P4["4.0 Feature Transformation (25 Vars)"]
+    P4 --> D_FEAT[("Weather Feature Vectors")]
+    
+    D_FEAT --> P5["5.0 Dual-Stage XGBoost Inference"]
+    P5 --> D_PRED[("Rainfall Predictions (Class + Qty)")]
+    
+    D_TRK --> P6["6.0 Presentation & GeoJSON Synthesis"]
+    D_PRED --> P6
+    P6 --> OUT["Operational Dashboard Interface"]
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 4: SATELLITE DATA PROCESSING FLOWCHART
+%% ------------------------------------------------------------------------------
+flowchart TD
+    Start(["Start Satellite Ingestion"]) --> ReadNC["Read INSAT-3DS NetCDF-4 Archive"]
+    ReadNC --> ExtractMeta["Extract Coordinates & Metadata<br/>(Lat: 12.97°N, Lon: 77.59°E)"]
+    ExtractMeta --> CropROI["Sub-grid Crop to Bengaluru ROI<br/>(162 x 159 Grid Cells)"]
+    CropROI --> CheckNaN{"Valid Radiance /<br/>Pixel Mask?"}
+    CheckNaN -- "No" --> Impute["Impute Missing Pixels / Spatial Filter"]
+    CheckNaN -- "Yes" --> Binarize["Otsu Adaptive Binary Thresholding"]
+    Impute --> Binarize
+    Binarize --> MorphClean["Morphological Opening & Closing (3x3)"]
+    MorphClean --> SaveNPZ["Cache Standardized NPZ Array"]
+    SaveNPZ --> End(["Forward to Motion Tracking Engine"])
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 5: RAINFALL PREDICTION WORKFLOW
+%% ------------------------------------------------------------------------------
+flowchart TD
+    WIn(["Meteorological Stream Ingestion"]) --> Align["Temporal Synchronization & Feature Scaling"]
+    Align --> Feat25["Formulate 25 Synoptic Parameters<br/>(Temp, Dew, Humidity, Pressure, Wind, etc.)"]
+    Feat25 --> Stage1["Stage 1: XGBoost Classification Model"]
+    Stage1 --> PredictClass{"P(Rain) >= 0.50 Threshold?"}
+    PredictClass -- "No (Dry Conditions)" --> OutputNoRain["Status: NO RAIN<br/>Precipitation Volume = 0.00 mm"]
+    PredictClass -- "Yes (Wet Event)" --> Stage2["Stage 2: XGBoost Regression Model"]
+    Stage2 --> RegressVal["Estimate Continuous Rainfall (mm)"]
+    RegressVal --> OutputRain["Status: RAIN DETECTED<br/>Precipitation Volume: Q mm"]
+    OutputNoRain --> DashboardPush(["Update Dashboard Metrics"])
+    OutputRain --> DashboardPush
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 6: CLOUD DETECTION AND TRACKING WORKFLOW
+%% ------------------------------------------------------------------------------
+flowchart TD
+    Inp(["Binarized Satellite Frame t"]) --> CCA["Connected Component Analysis (8-Connectivity)"]
+    CCA --> AreaFilt{"Region Area >= Minimum Pixel Area?"}
+    AreaFilt -- "No" --> Discard["Discard Transient Noise"]
+    AreaFilt -- "Yes" --> ExtractProps["Extract Centroid, Area, Bounding Box"]
+    ExtractProps --> LoadPrev["Retrieve Active Cloud Objects at t-1"]
+    LoadPrev --> BuildCost["Construct Pairwise Euclidean Distance Matrix C"]
+    BuildCost --> GateMax{"Distance <= Max Motion Threshold?"}
+    GateMax -- "No" --> InfCost["Assign Infinite Cost (Block Assignment)"]
+    GateMax -- "Yes" --> RetainCost["Retain Euclidean Metric"]
+    InfCost --> SolveHung["Solve Global Munkres / Hungarian Algorithm"]
+    RetainCost --> SolveHung
+    SolveHung --> UpdateTracks["Update Existing Cloud Kinematics & Trajectory"]
+    SolveHung --> CreateNew["Initialize New Cloud Tracks for Unmatched"]
+    UpdateTracks --> SaveTracks(["Export Trajectory GeoJSON"])
+    CreateNew --> SaveTracks
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 7: HUNGARIAN ASSIGNMENT ALGORITHM WORKFLOW
+%% ------------------------------------------------------------------------------
+flowchart TD
+    StartH(["Begin Hungarian Tracking Step"]) --> InitMat["Construct Cost Matrix C [N x M]<br/>C_ij = Euclidean Distance(c_i^(t-1), c_j^(t))"]
+    InitMat --> Step1["Step 1: Row Reduction<br/>Subtract Row Minimums"]
+    Step1 --> Step2["Step 2: Column Reduction<br/>Subtract Column Minimums"]
+    Step2 --> Step3["Step 3: Cover All Zeros with Minimum Lines (k)"]
+    Step3 --> TestOpt{"k == Dimension?"}
+    TestOpt -- "No" --> Step4["Step 4: Shift Smallest Uncovered Element<br/>Adjust Matrix & Return to Step 3"]
+    Step4 --> Step3
+    TestOpt -- "Yes" --> AssignOpt["Extract Global Optimal Pairing (i*, j*)"]
+    AssignOpt --> VelocityComp["Calculate Instantaneous Velocity (vx, vy) & Speed"]
+    VelocityComp --> TermH(["Store State Vector"])
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 8: UML USE CASE DIAGRAM
+%% ------------------------------------------------------------------------------
+graph LR
+    User(("Meteorologist /<br/>Urban Planner"))
+    SysAdmin(("System Administrator"))
+    
+    subgraph CloudPathSystem["CloudPath AI Operational System"]
+        UC1(["Select Date/Time from 31-Day Timeline"])
+        UC2(["Inspect Satellite Cloud Spatial Mask"])
+        UC3(["View Cloud Motion Vectors & Kinematics"])
+        UC4(["Examine Dual-Stage Rainfall Predictions"])
+        UC5(["Monitor Surface Weather Parameters"])
+        UC6(["Export Historical Reports & GeoJSON"])
+        UC7(["Manage Satellite Ingestion & Models"])
+    end
+    
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+    User --> UC5
+    User --> UC6
+    SysAdmin --> UC7
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 9: UML ACTIVITY DIAGRAM
+%% ------------------------------------------------------------------------------
+flowchart TD
+    ActStart((Start)) --> SelectTime["User Selects Observation Timestamp"]
+    SelectTime --> FetchSat["System Queries Satellite Data Repository"]
+    FetchSat --> FetchMet["System Queries Synchronized Weather Features"]
+    
+    par1["Fork Operations"]
+    FetchSat --> par1
+    FetchMet --> par1
+    
+    par1 --> TrackProc["Run Spatiotemporal Tracking Pipeline"]
+    par1 --> MLProc["Run Dual-Stage XGBoost Inference Engine"]
+    
+    TrackProc --> join1["Join Results"]
+    MLProc --> join1
+    
+    join1 --> RenderSpatial["Synthesize GeoJSON Trajectories & Cloud Canvas"]
+    RenderSpatial --> RenderMetrics["Format Weather & Precipitation KPI Cards"]
+    RenderMetrics --> DisplayDash["Render Interactive Dashboard Interface"]
+    DisplayDash --> ActEnd((End))
+
+%% ------------------------------------------------------------------------------
+%% DIAGRAM 10: UML SEQUENCE DIAGRAM
+%% ------------------------------------------------------------------------------
+sequenceDiagram
+    autonumber
+    actor User as Meteorologist
+    participant UI as Dashboard Interface (Web)
+    participant Ctrl as Integration Pipeline Controller
+    participant Engine as Machine Learning Engine
+    participant Sat as Satellite Processing Engine
+    participant DB as File System / Data Store
+
+    User ->> UI: Select Date/Time Timestamp
+    UI ->> Ctrl: GET /api/observation?timestamp=T
+    Ctrl ->> DB: Query Satellite NPZ & Weather Vector
+    DB -->> Ctrl: Return Satellite Matrix & 25 Weather Features
+    Ctrl ->> Sat: Compute Cloud Mask & Motion Tracking
+    Sat -->> Ctrl: Return Centroids, Trajectories, Speeds
+    Ctrl ->> Engine: Run Two-Stage XGBoost Models
+    Engine -->> Ctrl: Return P(Rain) & Precipitation Depth (mm)
+    Ctrl -->> UI: JSON Response (GeoJSON, Forecast, Weather Metrics)
+    UI -->> User: Display Interactive Satellite Map & Prediction Dashboard
+

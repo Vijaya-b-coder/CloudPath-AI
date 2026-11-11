@@ -1,0 +1,46 @@
+model_type,model_name,metric,value
+classifier,Logistic Regression,accuracy,0.843573391403536
+classifier,Logistic Regression,precision,0.5300119027376297
+classifier,Logistic Regression,recall,0.9249258160237389
+classifier,Logistic Regression,f1,0.6738730948005621
+classifier,Logistic Regression,roc_auc,0.9566883586945557
+classifier,Decision Tree,accuracy,0.9289158500544408
+classifier,Decision Tree,precision,0.754002541296061
+classifier,Decision Tree,recall,0.8804154302670623
+classifier,Decision Tree,f1,0.8123203285420945
+classifier,Decision Tree,roc_auc,0.9607635696973301
+classifier,Random Forest,accuracy,0.9271530046145072
+classifier,Random Forest,precision,0.7240592930444698
+classifier,Random Forest,recall,0.9421364985163204
+classifier,Random Forest,f1,0.8188265635074146
+classifier,Random Forest,roc_auc,0.9801193095712196
+classifier,XGBoost,accuracy,0.9417742520868979
+classifier,XGBoost,precision,0.8251808972503618
+classifier,XGBoost,recall,0.8459940652818991
+classifier,XGBoost,f1,0.8354578754578754
+classifier,XGBoost,roc_auc,0.9763943763167574
+classifier,XGBoost (Tuned),accuracy,0.9413076165292684
+classifier,XGBoost (Tuned),precision,0.8208142201834863
+classifier,XGBoost (Tuned),recall,0.8495548961424332
+classifier,XGBoost (Tuned),f1,0.8349372995042287
+classifier,XGBoost (Tuned),roc_auc,0.9752763081631364
+regressor,Linear Regression,MAE,0.09685507015817003
+regressor,Linear Regression,MSE,0.10395358867574582
+regressor,Linear Regression,RMSE,0.3224183441985673
+regressor,Linear Regression,R2,0.6302477906347843
+regressor,Decision Tree,MAE,0.07798537731663223
+regressor,Decision Tree,MSE,0.10266942129701746
+regressor,Decision Tree,RMSE,0.3204206942396472
+regressor,Decision Tree,R2,0.634815441752252
+regressor,Random Forest,MAE,0.06999089437115251
+regressor,Random Forest,MSE,0.08576558815991311
+regressor,Random Forest,RMSE,0.29285762438412477
+regressor,Random Forest,R2,0.6949406353968999
+regressor,XGBoost,MAE,0.06421482555304926
+regressor,XGBoost,MSE,0.06199228927952581
+regressor,XGBoost,RMSE,0.24898250797902613
+regressor,XGBoost,R2,0.7794998112454747
+regressor,XGBoost (Tuned),MAE,0.05967960304715422
+regressor,XGBoost (Tuned),MSE,0.06753167553411783
+regressor,XGBoost (Tuned),RMSE,0.25986857357925724
+regressor,XGBoost (Tuned),R2,0.7597967848059403

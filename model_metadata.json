@@ -1,0 +1,50 @@
+{
+  "project": "CloudPath AI \u2013 Phase 2",
+  "dataset": "bengaluru_processed.csv",
+  "train_rows": 77144,
+  "test_rows": 19287,
+  "train_date_range": [
+    "2009-01-01 00:00:00",
+    "2017-10-20 07:00:00"
+  ],
+  "test_date_range": [
+    "2017-10-20 08:00:00",
+    "2020-01-01 22:00:00"
+  ],
+  "feature_cols": [
+    "maxtempC",
+    "mintempC",
+    "sunHour",
+    "uvIndex",
+    "moon_illumination",
+    "DewPointC",
+    "FeelsLikeC",
+    "HeatIndexC",
+    "WindChillC",
+    "WindGustKmph",
+    "cloudcover",
+    "humidity",
+    "precipMM",
+    "pressure",
+    "tempC",
+    "visibility",
+    "winddirDegree",
+    "windspeedKmph",
+    "hour",
+    "day",
+    "month",
+    "year",
+    "day_of_week",
+    "week_of_year",
+    "season_enc"
+  ],
+  "n_features": 25,
+  "classification_target": "rain_status",
+  "regression_target": "next_hour_rainfall",
+  "best_classifier": "XGBoost (Tuned)",
+  "best_regressor": "XGBoost (Tuned)",
+  "clf_test_f1": 0.8349,
+  "clf_test_auc": 0.9753,
+  "reg_test_rmse": 0.2599,
+  "reg_test_r2": 0.7598
+}

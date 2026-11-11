@@ -1,0 +1,23 @@
+=================================================================
+CloudPath AI – Automated Test Suite Report (Phase 6)
+=================================================================
+Executed: 2026-11-11 13:12:40
+Summary : 13/13 tests passed (3.16s)
+
+TEST NAME                                     STATUS     DETAILS
+---------------------------------------------------------------------------
+Weather Dataset Dimensions & Targets          PASSED     Rows: 96,431, Target cols present: True
+Weather Feature Schema Integrity              PASSED     All expected base weather features present: True
+Classifier Artifact Structure                 PASSED     Contains model, scaler, 25 feature columns (threshold: 0.5)
+Regressor Artifact Structure                  PASSED     Contains model, scaler, 25 feature columns (XGBoost (Tuned))
+Prediction Engine Execution & Bounds          PASSED     Rain prob: 1.00, Dry prob: 0.00
+Satellite NPZ Grid & Dimensions               PASSED     Shape: (1448, 162, 159), Timestamps: 1448
+Satellite Geospatial Scale                    PASSED     km/row: 4.079, km/col: 4.055 (approx 4km)
+Connected Cloud Region Detection              PASSED     Frame 0 regions: 2, Frame 1 regions: 1
+Hungarian Assignment & Tracking               PASSED     Matches found: 1, Disappeared: 1, Appeared: 0
+Meteorological Bearing Calculation            PASSED     East bearing: 90.0°, South bearing: 180.0°
+Temporal Compatibility Audit (Honest Non-Overlap) PASSED     Weather: 2009-2020, Sat: 2025
+Satellite Feature Aggregation Table           PASSED     Rows: 1448, Features: ['timestamp', 'cloud_coverage_pct', 'clear_coverage_pct', 'n_regions', 'flag_high_thick', 'flag_low_thick']
+Missing Feature Imputation & Warning Generation PASSED     Warnings raised: 2, Pred amount: 0.13 mm
+
+Conclusion: All core components verified and mathematically validated.

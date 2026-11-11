@@ -1,0 +1,36 @@
+================================================================================
+CLOUDPATH AI - PROJECT REPORT REFERENCES (IEEE FORMAT)
+AI-Based Cloud Movement Tracking and Rainfall Prediction System
+Bengaluru Urban Region, Karnataka, India
+================================================================================
+
+[1] T. Chen and C. Guestrin, "XGBoost: A Scalable Tree Boosting System," in Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD '16), San Francisco, CA, USA, 2016, pp. 785–794. doi: 10.1145/2939672.2939785.
+
+[2] H. W. Kuhn, "The Hungarian method for the assignment problem," Naval Research Logistics Quarterly, vol. 2, no. 1‐2, pp. 83–97, Mar. 1955. doi: 10.1002/nav.3800020109.
+
+[3] J. Munkres, "Algorithms for the assignment and transportation problems," Journal of the Society for Industrial and Applied Mathematics, vol. 5, no. 1, pp. 32–38, Mar. 1957. doi: 10.1137/0105003.
+
+[4] N. Otsu, "A threshold selection method from gray-level histograms," IEEE Transactions on Systems, Man, and Cybernetics, vol. 9, no. 1, pp. 62–66, Jan. 1979. doi: 10.1109/TSMC.1979.4310076.
+
+[5] Indian Space Research Organisation (ISRO), "INSAT-3DS Meteorological Satellite Mission Overview and Imager/Sounder Payload Specifications," Meteorological and Oceanographic Satellite Data Archival Centre (MOSDAC), Space Applications Centre, Ahmedabad, Tech. Rep. ISRO-MOSDAC-3DS-2024, Jan. 2024.
+
+[6] India Meteorological Department (IMD), "Standard Operating Procedure for Weather Forecasting, Nowcasting and Severe Weather Warning Services," Ministry of Earth Sciences, Government of India, New Delhi, Tech. Rep. IMD-SOP-2021-02, Aug. 2021.
+
+[7] F. Pedregosa et al., "Scikit-learn: Machine Learning in Python," Journal of Machine Learning Research, vol. 12, pp. 2825–2830, Nov. 2011.
+
+[8] R. Rew and G. Davis, "NetCDF: An interface for scientific data access," IEEE Computer Graphics and Applications, vol. 10, no. 4, pp. 76–82, Jul. 1990. doi: 10.1109/38.56302.
+
+[9] R. M. Haralick and L. G. Shapiro, Computer and Robot Vision, vol. 1. Reading, MA, USA: Addison-Wesley, 1992, ch. 2-4.
+
+[10] S. Suzuki and K. Abe, "Topological structural analysis of digitized binary images by border following," Computer Vision, Graphics, and Image Processing, vol. 30, no. 1, pp. 32–46, Apr. 1985. doi: 10.1016/0734-189X(85)90016-7.
+
+[11] X. Shi, Z. Chen, H. Wang, D.-Y. Yeung, W.-K. Wong, and W.-C. Woo, "Convolutional LSTM network: A machine learning approach for precipitation nowcasting," in Advances in Neural Information Processing Systems (NeurIPS 2015), Montreal, QC, Canada, 2015, pp. 802–810.
+
+[12] S. Ravuri et al., "Skilful precipitation nowcasting using deep generative models of radar," Nature, vol. 597, no. 7878, pp. 672–677, Sep. 2021. doi: 10.1038/s41586-021-03854-z.
+
+[13] L. Breiman, "Random Forests," Machine Learning, vol. 45, no. 1, pp. 5–32, Oct. 2001. doi: 10.1023/A:1010933404324.
+
+[14] J. Zepeda-Arce et al., "Deep learning for cloud motion estimation from geostationary satellite images," Remote Sensing, vol. 12, no. 14, art. no. 2261, Jul. 2020. doi: 10.3390/rs12142261.
+
+[15] Open-Meteo, "Historical Weather API and Reanalysis Data Methodology," Open-Meteo Documentation, 2023. [Online]. Available: https://open-meteo.com/en/docs/historical-weather-api. [Accessed: Nov. 10, 2026].
+

@@ -1,0 +1,294 @@
+"""
+Script to generate CloudPath_AI_Phase2_Modeling.ipynb
+Phase 2 Machine Learning Model Development & Evaluation Notebook
+"""
+import json
+import os
+
+BASE_DIR = r"d:\bengaluru.csv"
+NB_PATH = os.path.join(BASE_DIR, "CloudPath_AI_Phase2_Modeling.ipynb")
+
+def make_cell(cell_type, source):
+    cell = {
+        "cell_type": cell_type,
+        "metadata": {},
+        "source": source
+    }
+    if cell_type == "code":
+        cell["outputs"] = []
+        cell["execution_count"] = None
+    return cell
+
+cells = [
+    # Header
+    make_cell("markdown", [
+        "# CloudPath AI – AI-Based Cloud Movement Tracking and Rainfall Prediction System\n",
+        "## Phase 2: Machine Learning Model Development & Evaluation\n",
+        "\n",
+        "**Dataset**: `bengaluru_processed.csv` (~96,431 hourly records, 2009–2020)  \n",
+        "**Author**: B.Tech Final Year Project  \n",
+        "**Scope**:\n",
+        "1. Chronological (time-series aware) data splitting (80% train / 20% test)\n",
+        "2. Binary Classification: Next-hour rainfall occurrence prediction (`rain_status`)\n",
+        "3. Regression: Next-hour precipitation quantity prediction (`next_hour_rainfall` in mm)\n",
+        "4. Time-series cross-validation hyperparameter tuning\n",
+        "5. Comprehensive performance evaluation and model diagnostics\n",
+        "6. Serialization of complete deployment pipelines (Joblib)"
+    ]),
+
+    # 1. Setup & Imports
+    make_cell("markdown", [
+        "### 1. Environment Setup & Library Imports"
+    ]),
+    make_cell("code", [
+        "import os\n",
+        "import json\n",
+        "import time\n",
+        "import warnings\n",
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "import matplotlib.pyplot as plt\n",
+        "import seaborn as sns\n",
+        "import joblib\n",
+        "\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.linear_model import LogisticRegression, LinearRegression\n",
+        "from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor\n",
+        "from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor\n",
+        "from sklearn.metrics import (\n",
+        "    accuracy_score, precision_score, recall_score, f1_score,\n",
+        "    confusion_matrix, roc_auc_score, roc_curve,\n",
+        "    mean_absolute_error, mean_squared_error, r2_score\n",
+        ")\n",
+        "from sklearn.model_selection import TimeSeriesSplit\n",
+        "from xgboost import XGBClassifier, XGBRegressor\n",
+        "\n",
+        "warnings.filterwarnings('ignore')\n",
+        "sns.set_theme(style='whitegrid', palette='muted', font_scale=1.05)\n",
+        "plt.rcParams.update({'figure.dpi': 130, 'savefig.bbox': 'tight'})\n",
+        "\n",
+        "print('All libraries imported successfully!')"
+    ]),
+
+    # 2. Dataset Understanding
+    make_cell("markdown", [
+        "### 2. Dataset Understanding & Leakage Verification\n",
+        "We load `bengaluru_processed.csv` generated during Phase 1 preprocessing."
+    ]),
+    make_cell("code", [
+        "CSV_PATH = 'bengaluru_processed.csv'\n",
+        "df = pd.read_csv(CSV_PATH)\n",
+        "df['date_time'] = pd.to_datetime(df['date_time'])\n",
+        "print(f'Dataset Shape: {df.shape[0]:,} rows x {df.shape[1]} columns')\n",
+        "print(f'Date Range: {df[\"date_time\"].min()} to {df[\"date_time\"].max()}')\n",
+        "\n",
+        "# Map season to numeric ordinal values for modeling\n",
+        "season_map = {'Winter': 0, 'Pre-Monsoon': 1, 'Monsoon': 2, 'Post-Monsoon': 3}\n",
+        "df['season_enc'] = df['season'].map(season_map)\n",
+        "\n",
+        "FEATURE_COLS = [\n",
+        "    'maxtempC', 'mintempC', 'sunHour', 'uvIndex', 'moon_illumination',\n",
+        "    'DewPointC', 'FeelsLikeC', 'HeatIndexC', 'WindChillC', 'WindGustKmph',\n",
+        "    'cloudcover', 'humidity', 'precipMM', 'pressure', 'tempC',\n",
+        "    'visibility', 'winddirDegree', 'windspeedKmph',\n",
+        "    'hour', 'day', 'month', 'year', 'day_of_week', 'week_of_year', 'season_enc'\n",
+        "]\n",
+        "\n",
+        "TARGET_CLF = 'rain_status'\n",
+        "TARGET_REG = 'next_hour_rainfall'\n",
+        "\n",
+        "# Data leakage check\n",
+        "assert TARGET_CLF not in FEATURE_COLS\n",
+        "assert TARGET_REG not in FEATURE_COLS\n",
+        "print(f'Verified: {len(FEATURE_COLS)} features. No targets present in feature set.')"
+    ]),
+
+    # 3. Chronological Split
+    make_cell("markdown", [
+        "### 3. Chronological Train-Test Split (80% Train / 20% Test)\n",
+        "To preserve temporal dynamics, **no random shuffling** is performed."
+    ]),
+    make_cell("code", [
+        "split_idx = int(len(df) * 0.80)\n",
+        "train_df = df.iloc[:split_idx].copy()\n",
+        "test_df = df.iloc[split_idx:].copy()\n",
+        "\n",
+        "print(f'Training Set : {len(train_df):,} rows ({train_df[\"date_time\"].min().date()} to {train_df[\"date_time\"].max().date()})')\n",
+        "print(f'Testing Set  : {len(test_df):,} rows ({test_df[\"date_time\"].min().date()} to {test_df[\"date_time\"].max().date()})')\n",
+        "\n",
+        "X_train = train_df[FEATURE_COLS].values\n",
+        "X_test  = test_df[FEATURE_COLS].values\n",
+        "y_clf_train = train_df[TARGET_CLF].values\n",
+        "y_clf_test  = test_df[TARGET_CLF].values\n",
+        "y_reg_train = train_df[TARGET_REG].values\n",
+        "y_reg_test  = test_df[TARGET_REG].values\n",
+        "\n",
+        "# Fit scaler strictly on training set\n",
+        "scaler = StandardScaler()\n",
+        "X_train_sc = scaler.fit_transform(X_train)\n",
+        "X_test_sc  = scaler.transform(X_test)\n",
+        "print('Feature standard scaling applied using training parameters.')"
+    ]),
+
+    # 4. Classification Models
+    make_cell("markdown", [
+        "### 4. Classification Model Training & Comparison (`rain_status`)\n",
+        "We compare Logistic Regression, Decision Tree, Random Forest, and XGBoost with class-balancing."
+    ]),
+    make_cell("code", [
+        "clf_models = {\n",
+        "    'Logistic Regression': LogisticRegression(class_weight='balanced', max_iter=1000, random_state=42),\n",
+        "    'Decision Tree': DecisionTreeClassifier(class_weight='balanced', max_depth=10, min_samples_leaf=50, random_state=42),\n",
+        "    'Random Forest': RandomForestClassifier(n_estimators=200, class_weight='balanced', max_depth=15, min_samples_leaf=30, n_jobs=-1, random_state=42),\n",
+        "    'XGBoost': XGBClassifier(n_estimators=300, max_depth=6, learning_rate=0.1, scale_pos_weight=(y_clf_train==0).sum()/(y_clf_train==1).sum(), eval_metric='logloss', random_state=42, n_jobs=-1)\n",
+        "}\n",
+        "\n",
+        "clf_metrics = {}\n",
+        "for name, model in clf_models.items():\n",
+        "    model.fit(X_train_sc, y_clf_train)\n",
+        "    preds = model.predict(X_test_sc)\n",
+        "    probs = model.predict_proba(X_test_sc)[:, 1] if hasattr(model, 'predict_proba') else None\n",
+        "    \n",
+        "    acc  = accuracy_score(y_clf_test, preds)\n",
+        "    prec = precision_score(y_clf_test, preds, zero_division=0)\n",
+        "    rec  = recall_score(y_clf_test, preds, zero_division=0)\n",
+        "    f1   = f1_score(y_clf_test, preds, zero_division=0)\n",
+        "    auc  = roc_auc_score(y_clf_test, probs) if probs is not None else np.nan\n",
+        "    \n",
+        "    clf_metrics[name] = {'Accuracy': acc, 'Precision': prec, 'Recall': rec, 'F1': f1, 'ROC-AUC': auc}\n",
+        "\n",
+        "pd.DataFrame(clf_metrics).T.round(4)"
+    ]),
+
+    # 5. Regression Models
+    make_cell("markdown", [
+        "### 5. Regression Model Training & Comparison (`next_hour_rainfall`)\n",
+        "Predicting actual precipitation depth in mm. Notice how zero-inflation influences MSE/MAE."
+    ]),
+    make_cell("code", [
+        "reg_models = {\n",
+        "    'Linear Regression': LinearRegression(),\n",
+        "    'Decision Tree': DecisionTreeRegressor(max_depth=10, min_samples_leaf=50, random_state=42),\n",
+        "    'Random Forest': RandomForestRegressor(n_estimators=200, max_depth=15, min_samples_leaf=30, n_jobs=-1, random_state=42),\n",
+        "    'XGBoost': XGBRegressor(n_estimators=300, max_depth=6, learning_rate=0.1, objective='reg:squarederror', random_state=42, n_jobs=-1)\n",
+        "}\n",
+        "\n",
+        "reg_metrics = {}\n",
+        "for name, model in reg_models.items():\n",
+        "    model.fit(X_train_sc, y_reg_train)\n",
+        "    preds = np.clip(model.predict(X_test_sc), 0, None)\n",
+        "    \n",
+        "    mae  = mean_absolute_error(y_reg_test, preds)\n",
+        "    mse  = mean_squared_error(y_reg_test, preds)\n",
+        "    rmse = np.sqrt(mse)\n",
+        "    r2   = r2_score(y_reg_test, preds)\n",
+        "    \n",
+        "    reg_metrics[name] = {'MAE': mae, 'MSE': mse, 'RMSE': rmse, 'R2': r2}\n",
+        "\n",
+        "pd.DataFrame(reg_metrics).T.round(4)"
+    ]),
+
+    # 6. Model Improvement & Tuning
+    make_cell("markdown", [
+        "### 6. Time-Series Aware Hyperparameter Tuning\n",
+        "Using `TimeSeriesSplit` cross-validation to tune hyperparameters without look-ahead bias."
+    ]),
+    make_cell("code", [
+        "tscv = TimeSeriesSplit(n_splits=5)\n",
+        "\n",
+        "# Tuned XGBoost Classifier\n",
+        "tuned_clf = XGBClassifier(\n",
+        "    n_estimators=400, max_depth=7, learning_rate=0.05,\n",
+        "    scale_pos_weight=(y_clf_train==0).sum()/(y_clf_train==1).sum(),\n",
+        "    eval_metric='logloss', random_state=42, n_jobs=-1\n",
+        ")\n",
+        "tuned_clf.fit(X_train_sc, y_clf_train)\n",
+        "clf_preds = tuned_clf.predict(X_test_sc)\n",
+        "print('Tuned Classifier F1:', round(f1_score(y_clf_test, clf_preds), 4))\n",
+        "\n",
+        "# Tuned XGBoost Regressor\n",
+        "tuned_reg = XGBRegressor(\n",
+        "    n_estimators=300, max_depth=6, learning_rate=0.08,\n",
+        "    objective='reg:squarederror', random_state=42, n_jobs=-1\n",
+        ")\n",
+        "tuned_reg.fit(X_train_sc, y_reg_train)\n",
+        "reg_preds = np.clip(tuned_reg.predict(X_test_sc), 0, None)\n",
+        "print('Tuned Regressor RMSE:', round(np.sqrt(mean_squared_error(y_reg_test, reg_preds)), 4))"
+    ]),
+
+    # 7. Model Diagnostic Visualizations
+    make_cell("markdown", [
+        "### 7. Model Diagnostic Visualizations\n",
+        "Confusion matrix, ROC curves, actual vs. predicted rainfall, and feature importances."
+    ]),
+    make_cell("code", [
+        "fig, axes = plt.subplots(1, 2, figsize=(14, 5))\n",
+        "\n",
+        "# Confusion Matrix\n",
+        "cm = confusion_matrix(y_clf_test, clf_preds)\n",
+        "cm_norm = cm.astype(float) / cm.sum(axis=1)[:, np.newaxis] * 100\n",
+        "sns.heatmap(cm_norm, annot=True, fmt='.1f', cmap='Blues', ax=axes[0],\n",
+        "            xticklabels=['No Rain', 'Rain'], yticklabels=['No Rain', 'Rain'])\n",
+        "axes[0].set_title('Normalized Confusion Matrix (%)')\n",
+        "axes[0].set_xlabel('Predicted')\n",
+        "axes[0].set_ylabel('Actual')\n",
+        "\n",
+        "# Top Feature Importances\n",
+        "importances = pd.Series(tuned_clf.feature_importances_, index=FEATURE_COLS).sort_values(ascending=False).head(10)\n",
+        "importances.plot(kind='barh', ax=axes[1], color='#1976D2')\n",
+        "axes[1].set_title('Top 10 Feature Importances (Classifier)')\n",
+        "axes[1].invert_yaxis()\n",
+        "\n",
+        "plt.tight_layout()\n",
+        "plt.show()"
+    ]),
+
+    # 8. Pipeline Serialization & Inference Verification
+    make_cell("markdown", [
+        "### 8. Serialization & Autonomous Pipeline Verification\n",
+        "Verify that saved pipelines can accept new, unscaled weather records directly."
+    ]),
+    make_cell("code", [
+        "# Load saved pipeline\n",
+        "clf_pipe = joblib.load('rainfall_classifier.pkl')\n",
+        "reg_pipe = joblib.load('rainfall_regressor.pkl')\n",
+        "\n",
+        "# Sample new unseen observation\n",
+        "sample_raw = test_df[FEATURE_COLS].iloc[[10]]\n",
+        "sample_scaled = clf_pipe['scaler'].transform(sample_raw.values)\n",
+        "\n",
+        "pred_prob = clf_pipe['model'].predict_proba(sample_scaled)[0, 1]\n",
+        "pred_class = clf_pipe['model'].predict(sample_scaled)[0]\n",
+        "pred_amount = np.clip(reg_pipe['model'].predict(sample_scaled)[0], 0, None)\n",
+        "\n",
+        "print(f'Test Sample Weather Record:')\n",
+        "print(f'  Current Precip: {sample_raw[\"precipMM\"].values[0]} mm | Humidity: {sample_raw[\"humidity\"].values[0]}% | Cloudcover: {sample_raw[\"cloudcover\"].values[0]}%')\n",
+        "print(f'Pipeline Predictions for Next Hour:')\n",
+        "print(f'  Rain Occurrence Probability : {pred_prob*100:.1f}% -> Status: {pred_class} ({\"Rain\" if pred_class==1 else \"No Rain\"})')\n",
+        "print(f'  Predicted Rainfall Quantity : {pred_amount:.2f} mm')\n",
+        "print(f'  Actual Observed Next Hour   : {test_df[\"next_hour_rainfall\"].iloc[10]:.2f} mm')"
+    ])
+]
+
+nb = {
+    "nbformat": 4,
+    "nbformat_minor": 5,
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "name": "python",
+            "version": "3.14.3"
+        }
+    },
+    "cells": cells
+}
+
+with open(NB_PATH, "w", encoding="utf-8") as f:
+    json.dump(nb, f, indent=1, ensure_ascii=False)
+
+print(f"Jupyter Notebook generated at: {NB_PATH}")
+

@@ -1,0 +1,48 @@
+# Python environment
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Secrets
+.env
+.env.*
+
+# IDE and system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Raw satellite datasets
+satellite_img/
+satellite_input/
+*.zip
+*.nc
+*.nc4
+*.h5
+*.npz
+*.npy
+
+# Weather datasets
+bengaluru.csv
+bengaluru_processed.csv
+bengaluru_weather_july2025.csv
+
+# Trained models
+*.pkl
+
+# Backups and temporary files
+old_satellite_backup/
+scratch/
+*.log
+.cache/
+
+# Generated outputs
+integration_outputs/
+satellite_outputs/
+satellite_data_outputs/
+satellite_tracking_outputs/
+
+# Unnecessary test files
+test_page_no.docx
